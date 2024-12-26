@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 const AdminPanel = () => {
   const [registrations, setRegistrations] = useState([]);
@@ -22,11 +21,15 @@ const AdminPanel = () => {
   const fetchRegistrations = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/registrations`);
-      setRegistrations(response.data);
+      const response = await fetch(`${API_URL}/registrations`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setRegistrations(data);
       setError(null);
     } catch (error) {
-      setError('Error fetching registrations: ' + (error.response?.data?.message || error.message));
+      setError('Error fetching registrations: ' + error.message);
       console.error('Error fetching registrations:', error);
     } finally {
       setLoading(false);
@@ -35,29 +38,53 @@ const AdminPanel = () => {
 
   const handlePaymentVerification = async (id, status) => {
     try {
-      const response = await axios.patch(`${API_URL}/registrations/${id}`, { paymentStatus: status });
+      const response = await fetch(`${API_URL}/registrations/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ paymentStatus: status })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const updatedRegistration = await response.json();
       setRegistrations(registrations.map(reg => 
-        reg._id === id ? response.data : reg
+        reg._id === id ? updatedRegistration : reg
       ));
       setError(null);
     } catch (error) {
-      setError('Error updating payment status: ' + (error.response?.data?.message || error.message));
+      setError('Error updating payment status: ' + error.message);
     }
   };
 
   const handleNewRegistration = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API_URL}/registrations`, {
-        ...newRegistration,
-        paymentAmount: Number(newRegistration.paymentAmount)
+      const response = await fetch(`${API_URL}/registrations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...newRegistration,
+          paymentAmount: Number(newRegistration.paymentAmount)
+        })
       });
-      setRegistrations([...registrations, response.data]);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setRegistrations([...registrations, data]);
       setNewRegistration({ name: "", email: "", phone: "", paymentAmount: "" });
       setShowModal(false);
       setError(null);
     } catch (error) {
-      setError('Failed to create registration: ' + (error.response?.data?.message || error.message));
+      setError('Failed to create registration: ' + error.message);
     }
   };
 
@@ -77,7 +104,7 @@ const AdminPanel = () => {
             <img src="/images/club-logo.png" alt="Club Logo" className="h-12 w-auto" />
             <h1 className="text-3xl font-bold text-text-light">Xenia Admin Panel</h1>
           </div>
-          <img src="/images/event-logo.png" alt="Event Logo" className="h-12 w-auto" />
+          <img src="/images/event-logo.JPEG" alt="Event Logo" className="h-12 w-auto" />
         </div>
       </header>
 
