@@ -5,7 +5,7 @@ const User = require('../models/User');
 const Event = require('../models/Event');
 const Team = require('../models/Team');
 
-const MONGODB_URI = 'mongodb+srv://aditi23github:Xenia25@xenia.zwine.mongodb.net/test?retryWrites=true&w=majority';
+const MONGODB_URI = 'mongodb+srv://aditi23github:pw@xenia.zwine.mongodb.net/test?retryWrites=true&w=majority';
 
 const users = [
   {
