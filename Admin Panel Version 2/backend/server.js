@@ -15,7 +15,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/club_admi
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-const Registration = require('./models/Registration');
+const Participant = require('./models/Participant');
 const User = require('./models/User');
 const Event = require('./models/Event');
 const Team = require('./models/Team');
@@ -139,24 +139,8 @@ app.delete('/api/events/:id', async (req, res) => {
 app.get('/api/teams', async (req, res) => {
   try {
     const teams = await Team.find()
-      .populate('leader', 'name')
-      .populate('members', 'name')
-      .populate('event', 'name');
+    .populate('eventId','name').lean();
     res.json(teams);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-});
-
-app.get('/api/teams/:id', async (req, res) => {
-  try {
-    const team = await Team.findById(req.params.id)
-      .populate('leader', 'name')
-      .populate('members', 'name')
-      .populate('event', 'name');
-    if (!team) return res.status(404).json({ message: 'Team not found' });
-    res.json(team);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -167,9 +151,6 @@ app.post('/api/teams', async (req, res) => {
   const team = new Team(req.body);
   try {
     const newTeam = await team.save();
-    await newTeam.populate('leader', 'name');
-    await newTeam.populate('members', 'name');
-    await newTeam.populate('event', 'name');
     res.status(201).json(newTeam);
   } catch (error) {
     console.error(error);
@@ -183,10 +164,7 @@ app.patch('/api/teams/:id', async (req, res) => {
       req.params.id,
       req.body,
       { new: true }
-    )
-      .populate('leader', 'name')
-      .populate('members', 'name')
-      .populate('event', 'name');
+    );
     res.json(updatedTeam);
   } catch (error) {
     console.error(error);
@@ -194,54 +172,79 @@ app.patch('/api/teams/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/teams/:id', async (req, res) => {
+
+// Participants Routes
+app.get('/api/participants', async (req, res) => {
   try {
-    await Team.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Team deleted successfully' });
+    console.log('Fetching participants...');
+    const participants = await Participant.find()
+      .populate({
+        path: 'userId',
+        select: 'name',
+        options: { lean: true }
+      })
+      .populate({
+        path: 'eventId',
+        select: 'name',
+        options: { lean: true }
+      })
+      .populate({
+        path: 'teamId',
+        select: 'name users max',
+        options: { lean: true }
+      })
+      .lean();
+    
+    console.log('Participants found:', participants.length);
+    res.json(participants);
   } catch (error) {
-    console.error(error);
+    console.error('Detailed error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     res.status(500).json({ message: error.message });
   }
 });
 
-
-// Routes
-app.get('/api/registrations', async (req, res) => {
+app.post('/api/participants', async (req, res) => {
+  const participant = new Participant(req.body);
   try {
-    const registrations = await Registration.find();
-    res.json(registrations);
+    const newParticipant = await participant.save();
+    const populatedParticipant = await Participant.findById(newParticipant._id)
+      .populate('userId', 'name')
+      .populate('eventId', 'name')
+      .populate('teamId', 'name')
+      .lean();
+    res.status(201).json(populatedParticipant);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-});
-
-app.post('/api/registrations', async (req, res) => {
-  const registration = new Registration(req.body);
-  try {
-    const newRegistration = await registration.save();
-    res.status(201).json(newRegistration);
-  } catch (error) {
-    console.error(error);
+    console.error('Error creating participant:', error);
     res.status(400).json({ message: error.message });
   }
 });
 
-app.patch('/api/registrations/:id', async (req, res) => {
+app.patch('/api/participants/:id/verify', async (req, res) => {
   try {
-    const registration = await Registration.findByIdAndUpdate(
+    const participant = await Participant.findByIdAndUpdate(
       req.params.id,
-      { paymentStatus: req.body.paymentStatus },
+      { isVerified: true },
       { new: true }
-    );
-    res.json(registration);
+    )
+    .populate('userId', 'name')
+    .populate('eventId', 'name')
+    .populate('teamId', 'name')
+    .lean();
+    
+    res.json(participant);
   } catch (error) {
-    console.error(error);
+    console.error('Error verifying participant:', error);
     res.status(400).json({ message: error.message });
   }
 });
+
 
 
 // Port configuration
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+

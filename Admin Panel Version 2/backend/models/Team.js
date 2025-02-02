@@ -6,26 +6,22 @@ const teamSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
-    members: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-    leader: {
+    leadername: {
+      type: String,
+      required: false,
+    },
+    eventId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "User", // Assuming a User schema exists
-    },
-    event: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: "Event", // Assuming an Event schema exists
+      ref: "Event",
     },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt fields
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 

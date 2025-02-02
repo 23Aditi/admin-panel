@@ -4,9 +4,11 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "@shadcn/ui": "^0.0.4",
     "@tailwindcss/forms": "^0.5.9",
     "autoprefixer": "^10.4.20",
     "axios": "^1.7.9",
+    "lucide-react": "^0.474.0",
     "postcss": "^8.4.49",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

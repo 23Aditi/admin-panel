@@ -1,11 +1,32 @@
 const mongoose = require("mongoose");
 
-const registrationSchema = new mongoose.Schema(
+const participantSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "User",
+    },
+    pictian: {
+      type: Boolean,
+      required: true
+    },
+    college: {
+      type: String,
+      required: false,
+    },
+    classname: {
+      type: String,
+      required: false,
+    },
+    hackerrankid: {
+      type: String,
+      required: false,
+      default: "Not Provided",
+    },
+    rollNo: {
+      type: String,
+      required: false,
     },
     eventId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -26,6 +47,11 @@ const registrationSchema = new mongoose.Schema(
       required: true,
       match: [/^\d{10}$/, "Mobile number must be 10 digits"],
     },
+    alternatecontact: {
+      type: String,
+      required: false,
+      match: [/^\d{10}$/, "Mobile number must be 10 digits"],
+    },
     transactionID: {
       type: String,
       required: true,
@@ -35,17 +61,12 @@ const registrationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    paymentStatus: { 
-      type: String, 
-      enum: ['pending', 'accepted', 'rejected'], 
-      default: 'pending' 
-    },
   },
   {
     timestamps: true,
   }
 );
 
-registrationSchema.index({ userId: 1, eventId: 1 }, { unique: true });
+participantSchema.index({ userId: 1, eventId: 1 }, { unique: true });
 
-module.exports = mongoose.model("Registration", registrationSchema);
+module.exports = mongoose.model("Participant", participantSchema);
