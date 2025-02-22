@@ -17,7 +17,8 @@ const AdminPanel = () => {
     direction: 'ascending'
   });
 
-  const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://admin-panel-wz40.onrender.com/api';
+
 
   useEffect(() => {
     fetchData();
